@@ -6,34 +6,89 @@
     <title>YouTube TV Final</title>
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #000; margin: 0; padding: 0; } 
-        #playerWrapper { position: relative; width: 800px; height: 800px; margin: 20px auto; }
-        #player { width: 100%; height: 100%; }
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 1; }
-        #blackScreen { display: none; width: 800px; height: 800px; margin: 20px auto; background-image: url(https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2F4e%2Fc7%2F6a%2F4ec76afdc86c0da3abd1018b79238b62.gif&f=1&nofb=1&ipt=6709240198d4f24103ca8d79efa40f3277f852429f6daa8266061ebbe331ceca&ipo=images); background-size: cover; }
-        #playerOverlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 2;
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            background-color: #000; 
+            margin: 0; 
+            padding: 0; 
+        } 
+        #playerWrapper { 
+            position: relative; 
+            width: 80%; 
+            max-width: 1080px; 
+            height: 600px; 
+            padding-bottom: 36.25%; /* 16:9 Aspect Ratio */
+            margin: 4% auto ; 
+            box-sizing: border-box;
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
         }
-        #playerOverlay::before,
-        #playerOverlay::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            width: 100%;
+        #player { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            border-radius: 20px;
+        }
+        #overlay { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: transparent; 
+            z-index: 1; 
+        }
+        #blackScreen { 
+            display: none; 
+            width: 80%; 
+            max-width: 1080px; 
+            height: 600px; 
+            padding-bottom: 36.25%; 
+            margin: 4% auto ; 
+            background-image: url('https://i.pinimg.com/originals/4e/c7/6a/4ec76afdc86c0da3abd1018b79238b62.gif'); 
+            background-size: cover; 
+            background-position: center;
+            box-sizing: border-box;
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
+            border-radius: 20px;
+        }
+        /* Remote Control Buttons */
+        .remote-control {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .button {
+            background-color: #444;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
             height: 60px;
-            background-color: black;
+            margin: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 5px #222;
+            outline: none;
         }
-        #playerOverlay::before {
-            top: 0;
+        .button:active {
+            box-shadow: 0 2px #222;
+            transform: translateY(3px);
         }
-        #playerOverlay::after {
-            bottom: 0;
+        /* Responsive Design */
+        @media screen and (max-width: 600px) {
+            .button {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+                margin: 5px;
+            }
+            #playerWrapper, #blackScreen {
+                padding-bottom: 56.25%;
+            }
         }
     </style>
 </head>
@@ -41,21 +96,28 @@
     <div id="playerWrapper">
         <div id="player"></div>
         <div id="overlay"></div>
-        <div id="playerOverlay"></div>
     </div>
     <div id="blackScreen"></div>
+
+    <!-- Remote Control Buttons -->
+    <div class="remote-control">
+        <button class="button" id="powerButton">⏻</button>
+        <button class="button" id="prevButton">|<</button>
+        <button class="button" id="nextButton">>|</button>
+        <button class="button" id="volUpButton">+</button>
+        <button class="button" id="volDownButton">-</button>
+    </div>
 
     <script>
         let player;
         let isMuted = false;
+        let isPowerOn = true;
         let lastDownArrowTime = 0;
         let randomSeekDone = false;
-        let playlistSize = 0;  // This will store the number of videos in the playlist
+        let playlistSize = 0;
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
-                height: '800',
-                width: '800',
                 playerVars: {
                     'controls': 0,
                     'disablekb': 1,
@@ -76,10 +138,8 @@
         }
 
         function onPlayerReady(event) {
-            // Fetch the playlist size and store it
             playlistSize = player.getPlaylist().length;
 
-            // If the playlist is loaded properly, jump to a random video
             if (playlistSize > 0) {
                 jumpToRandomVideo();  
             }
@@ -94,6 +154,17 @@
 
             // Add keyboard event listener
             document.addEventListener('keydown', handleKeyPress);
+
+            // Add event listeners for buttons
+            document.getElementById('nextButton').addEventListener('click', jumpToRandomVideo);
+            document.getElementById('prevButton').addEventListener('click', jumpToRandomVideo);
+            document.getElementById('volUpButton').addEventListener('click', function() {
+                changeVolume(10);
+            });
+            document.getElementById('volDownButton').addEventListener('click', function() {
+                changeVolume(-10);
+            });
+            document.getElementById('powerButton').addEventListener('click', togglePower);
         }
 
         function getRandomTimestamp(duration) {
@@ -103,27 +174,24 @@
         }
 
         function jumpToRandomVideo() {
-            randomSeekDone = false;  // Reset the flag before loading a new video
-            const randomIndex = Math.floor(Math.random() * playlistSize); // Get a random video index
-
+            if (!isPowerOn) return;
+            randomSeekDone = false;
+            const randomIndex = Math.floor(Math.random() * playlistSize);
             player.loadPlaylist({
-                list: 'PLOeF-VH5OmxYm3CGTRkxgsEFvdeLRi09B',  // Your playlist ID here
-                index: randomIndex  // Load the playlist starting at a random index
+                list: 'PLOeF-VH5OmxYm3CGTRkxgsEFvdeLRi09B',
+                index: randomIndex
             });
-
-            player.playVideo();  // Start playing the randomly selected video
+            player.playVideo();
         }
 
         function onPlayerStateChange(event) {
             if (event.data === YT.PlayerState.ENDED) {
-                jumpToRandomVideo();  // Load a new random video when the current video ends
+                jumpToRandomVideo();
             } else if (event.data === YT.PlayerState.PLAYING && !randomSeekDone) {
-                // Once the video starts playing, jump to a random timestamp once
                 const duration = player.getDuration();
-                const randomTime = getRandomTimestamp(duration); // Get a random time within 5%-95%
-                player.seekTo(randomTime, true); // Seek to the random timestamp
-
-                randomSeekDone = true; // Set the flag to true to prevent further seeking
+                const randomTime = getRandomTimestamp(duration);
+                player.seekTo(randomTime, true);
+                randomSeekDone = true;
             }
         }
 
@@ -143,25 +211,44 @@
             player.setVolume(newVolume);
         }
 
+        function togglePower() {
+            const playerWrapper = document.getElementById('playerWrapper');
+            const blackScreen = document.getElementById('blackScreen');
+            if (isPowerOn) {
+                player.pauseVideo();
+                playerWrapper.style.display = 'none';
+                blackScreen.style.display = 'block';
+                isPowerOn = false;
+            } else {
+                playerWrapper.style.display = 'block';
+                blackScreen.style.display = 'none';
+                player.playVideo();
+                isPowerOn = true;
+            }
+        }
+
         function handleKeyPress(event) {
             switch(event.key) {
                 case 'ArrowRight':
-                    jumpToRandomVideo();  // Load a new random video
+                    jumpToRandomVideo();
                     break;
                 case 'ArrowLeft':
-                    jumpToRandomVideo();  // Load a new random video
+                    jumpToRandomVideo();
                     break;
                 case 'ArrowUp':
                     changeVolume(10);
                     break;
                 case 'ArrowDown':
                     const now = Date.now();
-                    if (now - lastDownArrowTime < 300) { // Double tap (300ms threshold)
+                    if (now - lastDownArrowTime < 300) {
                         toggleMute();
                     } else {
                         changeVolume(-10);
                     }
                     lastDownArrowTime = now;
+                    break;
+                case ' ':
+                    togglePower();
                     break;
             }
         }
