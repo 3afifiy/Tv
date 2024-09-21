@@ -9,19 +9,31 @@
         body { 
             font-family: Arial, sans-serif; 
             text-align: center; 
-            background-color: #000; 
+            background-color: #111; 
             margin: 0; 
             padding: 0; 
+            overflow: hidden;
         } 
+
+        #tv {
+            background: #000;
+            margin: 5% 20%;
+            padding: 2%;
+            border-radius: 40px;
+        }
+
         #playerWrapper { 
             position: relative; 
-            width: 80%; 
+            width: 100%; 
             max-width: 1080px; 
             height: 500px; 
             padding-bottom: 30%; /* 16:9 Aspect Ratio */
-            margin: 1% auto ; 
+            margin: 0px auto ; 
             box-sizing: border-box;
             box-shadow: 0 0 20px rgba(0,0,0,0.7);
+            border-radius: 20px;
+            /*float: left;*/
+
         }
         #player { 
             position: absolute; 
@@ -33,7 +45,7 @@
         }
         #overlay { 
             position: absolute; 
-            top: 0; 
+            bottom:60px;
             left: 0; 
             width: 100%; 
             height: 100%; 
@@ -42,11 +54,11 @@
         }
         #blackScreen { 
             display: none; 
-            width: 80%; 
+            width: 100%; 
             max-width: 1080px; 
             height: 500px; 
             padding-bottom: 30%; 
-            margin: 1% auto ; 
+            margin: 0px auto ; 
             background-image: url('https://i.pinimg.com/originals/4e/c7/6a/4ec76afdc86c0da3abd1018b79238b62.gif'); 
             background-size: cover; 
             background-position: center;
@@ -56,13 +68,14 @@
         }
         /* Remote Control Buttons */
         .remote-control {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
+            display: block;
+            padding: 2%;
+            padding-bottom: 0;  
+        
         }
         .button {
-            background-color: #444;
-            color: #fff;
+            background-color: #000;
+            color: #aaa;
             border: none;
             border-radius: 50%;
             width: 60px;
@@ -70,13 +83,20 @@
             margin: 10px;
             font-size: 24px;
             cursor: pointer;
-            box-shadow: 0 5px #222;
+            box-shadow: 0px 2px #333;
+            border: 1px solid #333;
             outline: none;
         }
         .button:active {
-            box-shadow: 0 2px #222;
+            box-shadow: 0 2px #222; 
+            color: #eee;
             transform: translateY(3px);
         }
+
+      /*  .clear {
+            clear: both;
+        }*/
+        
         /* Responsive Design */
         @media screen and (max-width: 600px) {
             .button {
@@ -92,19 +112,25 @@
     </style>
 </head>
 <body>
-    <div id="playerWrapper">
-        <div id="player"></div>
-        <div id="overlay"></div>
-    </div>
-    <div id="blackScreen"></div>
+    <div id="tv">
+        <div id="playerWrapper">
+            <div id="player"></div>
+            <div id="overlay"></div>
+        </div>
 
-    <!-- Remote Control Buttons -->
-    <div class="remote-control">
-        <button class="button" id="powerButton">⏻</button>
-        <button class="button" id="prevButton">|<</button>
-        <button class="button" id="nextButton">>|</button>
-        <button class="button" id="volUpButton">+</button>
-        <button class="button" id="volDownButton">-</button>
+        <div id="blackScreen"></div>
+
+        <!-- Remote Control Buttons -->
+        <div class="remote-control">
+            <button class="button" id="powerButton">⏻</button>
+            
+            <button class="button" id="prevButton"><<</button>
+            <button class="button" id="nextButton">>></button>
+            
+            <button class="button" id="volDownButton">-</button>
+            <button class="button" id="volUpButton">+</button>
+        </div>
+        <div class="clear"></div>
     </div>
 
     <script>
