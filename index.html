@@ -239,7 +239,7 @@
     </div>
 
     <script>
-        
+
         let player;
         let isMuted = false;
         let isPowerOn = true;
@@ -326,14 +326,14 @@
             }
         }
 
-        // function toggleMute() {
-        //     if (isMuted) {
-        //         player.unMute();
-        //         isMuted = false;
-        //     } else {
-        //         player.mute();
-        //         isMuted = true;
-        //     }
+        function toggleMute() {
+            if (isMuted) {
+                player.unMute();
+                isMuted = false;
+            } else {
+                player.mute();
+                isMuted = true;
+            }
         }
 
         function changeVolume(delta) {
@@ -465,7 +465,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const volumeBarContainer = document.getElementById('volumeBarContainer');
     volumeBarContainer.style.display = 'none'; // Hide on load
 });
-
 
 
 
