@@ -18,9 +18,10 @@
         #tv {
             background: #000;
             margin: 5% 20%;
-            padding: 2%;
+            padding: 40px;
             border-radius: 40px;
-            border: .5px solid #333;
+            border: 1px solid #333;
+            box-shadow: 0px 4px #333;
         }
 
         #playerWrapper { 
@@ -28,12 +29,8 @@
             width: 100%; 
             max-width: 1080px; 
             height: 500px; 
-            padding-bottom: 30%; /* 16:9 Aspect Ratio */
-            margin: 0px auto ; 
             box-sizing: border-box;
-            box-shadow: 0 0 20px rgba(0,0,0,0.7);
-            border-radius: 20px;
-
+            margin-bottom: 100px;
         }
         #player { 
             position: absolute; 
@@ -49,7 +46,34 @@
             left: 0; 
             width: 100%; 
             height: 100%; 
-            background: transparent; 
+            z-index: 1; 
+        }
+       
+        #overlayright { 
+            position: absolute; 
+            top:0;
+            right: 0; 
+            width: 15%; 
+            height: 100%; 
+            background:rgba(0,0,0,1); ; 
+            z-index: 1; 
+        }
+        #overlaytop{
+            position: absolute; 
+            top:0;
+            right: 0; 
+            width: 100%; 
+            height: 15%; 
+            background:rgba(0,0,0,1); ; 
+            z-index: 1; 
+        }
+        #overlayleft { 
+            position: absolute; 
+            top:0;
+            left: 0; 
+            width: 15%; 
+            height: 100%; 
+            background:rgba(0,0,0,1); ; 
             z-index: 1; 
         }
         #blackScreen { 
@@ -57,7 +81,6 @@
             width: 100%; 
             max-width: 1080px; 
             height: 500px; 
-            padding-bottom: 30%; 
             margin: 0px auto ; 
             background-image: url('https://i.pinimg.com/originals/4e/c7/6a/4ec76afdc86c0da3abd1018b79238b62.gif'); 
             background-size: cover; 
@@ -65,21 +88,23 @@
             box-sizing: border-box;
             box-shadow: 0 0 20px rgba(0,0,0,0.7);
             border-radius: 20px;
+            margin-bottom: 100px;
         }
         /* Remote Control Buttons */
         .remote-control {
             display: block;
             padding: 1%;
             width: fit-content;
-            margin: 30px auto;
-            border: .5px solid #333;
+            margin: 0 auto;
+            border: 1px solid #333;
             border-radius: 60px;
             margin-bottom: 0;
+            box-shadow: 0px 2px #333;
         
         }
         .button {
             background-color: #000;
-            color: #aaa;
+            color: #666;
             border: none;
             border-radius: 50%;
             width: 60px;
@@ -91,11 +116,64 @@
             border: 1px solid #333;
             outline: none;
         }
+        #powerButton {
+            color: red;
+        }
+        #powerButton:active {
+            color: white;
+        }
+
         .button:active {
             box-shadow: 0 2px #222; 
             color: #eee;
-            transform: translateY(3px);
+            transform: translateY(2px);
         }
+        .remote-control span{
+            color: #666;
+        }
+        .number {
+            color: green;
+            font-size: 44px;
+            position: absolute;
+            z-index: 999;
+            font-family: monospace;
+            top: 20px;
+            right: 20px;
+        }
+      
+
+    #volumeBarContainer {
+    display: none;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 999;
+}
+
+.volumeBar {
+    width: 20px;
+    height: 10px;
+    background-color: green;
+    border-radius: 3px;
+    transition: height 0.2s ease;
+}
+
+.volumeBar.active {
+    background-color: lime;
+}
+
+.volumeBarContainer.show {
+    display: flex;
+}
+
+
+
 
       /*  .clear {
             clear: both;
@@ -116,10 +194,30 @@
     </style>
 </head>
 <body>
+    
+
     <div id="tv">
+        
         <div id="playerWrapper">
             <div id="player"></div>
+            <div class="number">1</div>
+            <div id="volumeBarContainer">
+                <div class="volumeBar"></div>
+                <div class="volumeBar"></div>
+                <div class="volumeBar"></div>
+                <div class="volumeBar"></div>
+                <div class="volumeBar"></div>
+                <div class="volumeBar"></div>
+                <div class="volumeBar"></div>
+                <div class="volumeBar"></div>
+                <div class="volumeBar"></div>
+                <div class="volumeBar"></div>
+            </div>
             <div id="overlay"></div>
+            <div id="overlaytop"></div>
+            <div id="overlayleft"></div>
+            <div id="overlayright"></div>
+            <div id="overlaybottom"></div>
         </div>
 
         <div id="blackScreen"></div>
@@ -127,17 +225,21 @@
         <!-- Remote Control Buttons -->
         <div class="remote-control">
             <button class="button" id="powerButton">⏻</button>
+
             
             <button class="button" id="prevButton"><</button>
+            <span>Channel</span>
             <button class="button" id="nextButton">></button>
             
             <button class="button" id="volDownButton">-</button>
+            <span>Volume</span>
             <button class="button" id="volUpButton">+</button>
         </div>
         <div class="clear"></div>
     </div>
 
     <script>
+        
         let player;
         let isMuted = false;
         let isPowerOn = true;
@@ -281,6 +383,95 @@
                     break;
             }
         }
+        function showRandomNumber() {
+        const numberElement = document.querySelector('.number');
+        const randomNumber = Math.floor(Math.random() * 100) + 1;
+        numberElement.textContent = randomNumber;
+        numberElement.style.display = 'block';  // Show the number
+
+        setTimeout(() => {
+            numberElement.style.display = 'none';  // Hide the number after 1 second
+        }, 10000);
+    }
+
+    function jumpToRandomVideo() {
+        if (!isPowerOn) return;
+        randomSeekDone = false;
+        const randomIndex = Math.floor(Math.random() * playlistSize);
+        player.loadPlaylist({
+            list: 'PLOeF-VH5OmxYm3CGTRkxgsEFvdeLRi09B',
+            index: randomIndex
+        });
+        player.playVideo();
+
+        // Show a random number for 1 second when switching channels
+        showRandomNumber();
+    }
+
+    // Initial hide of the number
+    document.querySelector('.number').style.display = 'none';
+    
+        let volumeHideTimeout;
+
+function changeVolume(delta) {
+    const currentVolume = player.getVolume();
+    const newVolume = Math.max(0, Math.min(100, currentVolume + delta));
+    player.setVolume(newVolume);
+    showVolumeBars(newVolume);
+
+    // Clear any existing timeout and set a new one for hiding the bars
+    clearTimeout(volumeHideTimeout);
+    volumeHideTimeout = setTimeout(hideVolumeBars, 3000); // Hide after 5 seconds
+}
+
+function showVolumeBars(volume) {
+    const bars = document.querySelectorAll('.volumeBar');
+    const volumeLevel = Math.ceil(volume / 10); // Get volume level (1-10)
+
+    // Update the bar heights based on volume level
+    bars.forEach((bar, index) => {
+        if (index < volumeLevel) {
+            bar.classList.add('active');
+            bar.style.height = `${(index + 1) * 2}px`; // Increase height for each active bar
+        } else {
+            bar.classList.remove('active');
+            bar.style.height = '2px'; // Set default size for inactive bars
+        }
+    });
+
+    // Show the volume bar container by adding the 'show' class
+    const volumeBarContainer = document.getElementById('volumeBarContainer');
+    volumeBarContainer.classList.add('show');
+    volumeBarContainer.style.display = 'flex'; // Ensure it's displayed when showing
+}
+
+function hideVolumeBars() {
+    const volumeBarContainer = document.getElementById('volumeBarContainer');
+    volumeBarContainer.classList.remove('show');
+    volumeBarContainer.style.display = 'none'; // Hide the container
+}
+
+// Ensure the volume buttons trigger the volume change and display the bars
+document.getElementById('volUpButton').addEventListener('click', function() {
+    changeVolume(10);
+});
+
+document.getElementById('volDownButton').addEventListener('click', function() {
+    changeVolume(-10);
+});
+
+// Initially hide the volume bar container
+document.addEventListener('DOMContentLoaded', function() {
+    const volumeBarContainer = document.getElementById('volumeBarContainer');
+    volumeBarContainer.style.display = 'none'; // Hide on load
+});
+
+
+
+
+
     </script>
+    
+
 </body>
 </html>
