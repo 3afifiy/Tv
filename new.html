@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube TV Final</title>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            background-color: #2a1810; 
+            margin: 0; 
+            padding: 20px; 
+            overflow-x: hidden;
+        } 
+
+        #tv {
+            background:url('https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Fwww.textures4photoshop.com%2Ftex%2Fthumbs%2Ffree-wood-texture-with-high-resolution-thumb38.jpg&f=1&nofb=1&ipt=d17187a447b31366a5aa46eb1058fa24f26483b44fea799b03b53495f85a906f');
+            background-repeat: round;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 30px;
+            border-radius: 15px;
+            border: 8px solid #6b3410;
+            box-shadow: 
+                0px 10px 30px rgba(0,0,0,0.8),
+                inset 0 2px 10px rgba(139, 69, 19, 0.3),
+                inset 0 -2px 10px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        #tvInner {
+            background: linear-gradient(to bottom, #d4a574 0%, #c19a6b 50%, #b8956a 100%);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: inset 0 3px 15px rgba(0,0,0,0.4);
+            display: flex;
+            gap: 30px;
+            align-items: stretch;
+
+        }
+
+        #leftSpeaker {
+            display: none;
+        }
+
+        .speakerGrill {
+            flex: 1;
+            background: repeating-linear-gradient(
+                0deg,
+                #2a2a2a,
+                #2a2a2a 2px,
+                #1a1a1a 2px,
+                #1a1a1a 4px
+            );
+            border-radius: 3px;
+            border: 1px solid #4a4a4a;
+        }
+
+        #screenContainer {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #playerWrapper { 
+            position: relative; 
+            width: 100%; 
+            height: 450px; 
+            background: #1a1a1a;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        #player { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+        }
+        
+        #overlay { 
+            position: absolute; 
+            top:0;
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 1; 
+        }
+       
+        #overlayright { 
+            position: absolute; 
+            top:0;
+            right: 0; 
+            width: 5%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.95);
+            z-index: 1; 
+        }
+        
+        #overlaytop {
+            position: absolute; 
+            top:0;
+            right: 0; 
+            width: 100%; 
+            height: 8%; 
+            background: rgba(0,0,0,0.95);
+            z-index: 1; 
+        }
+        
+        #overlayleft { 
+            position: absolute; 
+            top:0;
+            left: 0; 
+            width: 5%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.95);
+            z-index: 1; 
+        }
+        
+        #overlaybottom {
+            position: absolute; 
+            bottom:0;
+            left: 0; 
+            width: 100%; 
+            height: 12%; 
+            background: rgba(0,0,0,0.95);
+            z-index: 1; 
+        }
+        
+        #blackScreen { 
+            display: none; 
+            width: 100%; 
+            height: 450px; 
+            background-image: url('https://i.pinimg.com/originals/4e/c7/6a/4ec76afdc86c0da3abd1018b79238b62.gif'); 
+            background-size: cover; 
+            background-position: center;
+            border-radius: 8px;
+        }
+
+        #controlPanel {
+            background:url('https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Fwww.textures4photoshop.com%2Ftex%2Fthumbs%2Ffree-wood-texture-with-high-resolution-thumb38.jpg&f=1&nofb=1&ipt=d17187a447b31366a5aa46eb1058fa24f26483b44fea799b03b53495f85a906f');
+            background-repeat: round;
+            width: 100px;
+            border-radius: 5px;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            box-shadow: 
+            inset 3px 0px 3px #000,
+            inset 0 2px 10px #000;
+
+        }
+
+        .knob {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #555, #222);
+            border: 3px solid #333;
+            box-shadow: 
+                0 3px 8px rgba(0,0,0,0.6),
+                inset 0 -2px 5px rgba(0,0,0,0.5),
+                inset 0 2px 3px rgba(255,255,255,0.1);
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .knob:active {
+            transform: scale(0.95);
+        }
+
+        .knob::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 20px;
+            background: #fff;
+            border-radius: 2px;
+            box-shadow: 0 0 3px rgba(255,255,255,0.5);
+        }
+
+        .roundSpeaker {
+            display: none;
+        }
+
+        .speakerRing {
+            display: none;
+        }
+
+        .rectangleSpeaker {
+            width: 100%;
+            flex: 1;
+            background: repeating-linear-gradient(
+                0deg,
+                #2a2a2a,
+                #2a2a2a 3px,
+                #1a1a1a 3px,
+                #1a1a1a 6px
+            );
+            border-radius: 5px;
+            border: 2px solid #333;
+            box-shadow: inset 0 3px 15px rgba(0,0,0,0.9);
+            margin-top: 15px;
+            min-height: 100px;
+        }
+
+        .button {
+            background: radial-gradient(circle at 30% 30%, #444, #1a1a1a);
+            color: #888;
+            border: 2px solid #333;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 
+                0px 2px 5px rgba(0,0,0,0.6),
+                inset 0 1px 2px rgba(255,255,255,0.1);
+            outline: none;
+            transition: all 0.1s;
+        }
+
+        #powerButton {
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle at 30% 30%, #660000, #330000);
+            color: #ff3333;
+            font-size: 24px;
+            border: 3px solid #440000;
+        }
+
+        .button:active, #powerButton:active {
+            box-shadow: 0 1px 2px rgba(0,0,0,0.6); 
+            transform: translateY(2px);
+        }
+
+        .knobLabel {
+            color: #2a2a2a;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: -5px;
+        }
+
+        .buttonRow {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .speakerVent {
+            background: repeating-linear-gradient(
+                0deg,
+                #1a1a1a,
+                #1a1a1a 3px,
+                #2a2a2a 3px,
+                #2a2a2a 6px
+            );
+            height: 40px;
+            border-radius: 3px;
+            border: 1px solid #4a4a4a;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+        }
+        
+        .number {
+            color: #0f0;
+            font-size: 48px;
+            position: absolute;
+            z-index: 999;
+            font-family: monospace;
+            top: 30px;
+            right: 30px;
+            display: none;
+            text-shadow: 0 0 20px #0f0;
+        }
+
+        #volumeBarContainer {
+            display: none;
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            gap: 8px;
+            z-index: 999;
+            padding: 15px 25px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 10px;
+            border: 2px solid #333;
+        }
+
+        .volumeBar {
+            width: 15px;
+            height: 8px;
+            background-color: #333;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+
+        .volumeBar.active {
+            background-color: #0f0;
+            box-shadow: 0 0 10px #0f0;
+        }
+
+        .volumeBarContainer.show {
+            display: flex;
+        }
+
+        @media screen and (max-width: 900px) {
+            #tvInner {
+                flex-direction: column;
+            }
+            
+            #leftSpeaker, #controlPanel {
+                width: 100%;
+            }
+            
+            #leftSpeaker {
+                flex-direction: row;
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="tv">
+        <div id="tvInner">
+            <!-- Screen Container -->
+            <div id="screenContainer">
+                <div id="playerWrapper">
+                    <div id="player"></div>
+                    <div class="number">1</div>
+                    <div id="volumeBarContainer">
+                        <div class="volumeBar"></div>
+                        <div class="volumeBar"></div>
+                        <div class="volumeBar"></div>
+                        <div class="volumeBar"></div>
+                        <div class="volumeBar"></div>
+                        <div class="volumeBar"></div>
+                        <div class="volumeBar"></div>
+                        <div class="volumeBar"></div>
+                        <div class="volumeBar"></div>
+                        <div class="volumeBar"></div>
+                    </div>
+                    <div id="overlay"></div>
+                    <div id="overlaytop"></div>
+                    <div id="overlayleft"></div>
+                    <div id="overlayright"></div>
+                    <div id="overlaybottom"></div>
+                </div>
+                <div id="blackScreen"></div>
+            </div>
+
+            <!-- Right Control Panel -->
+            <div id="controlPanel">
+                <button class="button" id="powerButton">⏻</button>
+                
+                <div class="knob" id="channelKnob"></div>
+                
+                <div class="knob" id="volumeKnob"></div>
+                
+                <!-- Rectangle Speaker -->
+                <div class="rectangleSpeaker"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let player;
+        let isMuted = false;
+        let isPowerOn = true;
+        let lastDownArrowTime = 0;
+        let randomSeekDone = false;
+        let playlistSize = 0;
+        let volumeHideTimeout;
+        let channelRotation = 0;
+        let volumeRotation = 0;
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                playerVars: {
+                    'controls': 0,
+                    'disablekb': 1,
+                    'modestbranding': 1,
+                    'rel': 0,
+                    'showinfo': 0,
+                    'autoplay': 1,
+                    'iv_load_policy': 3,
+                    'fs': 0,
+                    'listType': 'playlist',
+                    'list': 'PLOeF-VH5OmxYm3CGTRkxgsEFvdeLRi09B'
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            playlistSize = player.getPlaylist().length;
+
+            if (playlistSize > 0) {
+                jumpToRandomVideo();  
+            }
+
+            const overlay = document.getElementById('overlay');
+            overlay.addEventListener('click', function(event) {
+                event.stopPropagation();
+                if (player.getPlayerState() === YT.PlayerState.PAUSED) {
+                    player.playVideo();
+                }
+            });
+
+            document.addEventListener('keydown', handleKeyPress);
+            
+            document.getElementById('channelKnob').addEventListener('click', function() {
+                rotateKnob(this, 45);
+                jumpToRandomVideo();
+            });
+            
+            document.getElementById('volumeKnob').addEventListener('click', function() {
+                rotateKnob(this, 30);
+                changeVolume(10);
+            });
+            
+            document.getElementById('powerButton').addEventListener('click', togglePower);
+            document.querySelector('.number').style.display = 'none';
+        }
+
+        function rotateKnob(knob, degrees) {
+            const currentRotation = parseInt(knob.style.transform?.match(/rotate\((\d+)deg\)/)?.[1] || 0);
+            const newRotation = currentRotation + degrees;
+            knob.style.transform = `rotate(${newRotation}deg)`;
+        }
+
+        function getRandomTimestamp(duration) {
+            const minTime = duration * 0.05;
+            const maxTime = duration * 0.95;
+            return Math.floor(Math.random() * (maxTime - minTime) + minTime);
+        }
+
+        function jumpToRandomVideo() {
+            if (!isPowerOn) return;
+            randomSeekDone = false;
+            const randomIndex = Math.floor(Math.random() * playlistSize);
+            player.loadPlaylist({
+                list: 'PLOeF-VH5OmxYm3CGTRkxgsEFvdeLRi09B',
+                index: randomIndex
+            });
+            player.playVideo();
+            showRandomNumber();
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                jumpToRandomVideo();
+            } else if (event.data === YT.PlayerState.PLAYING && !randomSeekDone) {
+                const duration = player.getDuration();
+                const randomTime = getRandomTimestamp(duration);
+                player.seekTo(randomTime, true);
+                randomSeekDone = true;
+            }
+        }
+
+        function toggleMute() {
+            if (isMuted) {
+                player.unMute();
+                isMuted = false;
+            } else {
+                player.mute();
+                isMuted = true;
+            }
+        }
+
+        function changeVolume(delta) {
+            const currentVolume = player.getVolume();
+            const newVolume = Math.max(0, Math.min(100, currentVolume + delta));
+            player.setVolume(newVolume);
+            showVolumeBars(newVolume);
+            clearTimeout(volumeHideTimeout);
+            volumeHideTimeout = setTimeout(hideVolumeBars, 3000);
+        }
+
+        function togglePower() {
+            const playerWrapper = document.getElementById('playerWrapper');
+            const blackScreen = document.getElementById('blackScreen');
+            if (isPowerOn) {
+                player.pauseVideo();
+                playerWrapper.style.display = 'none';
+                blackScreen.style.display = 'block';
+                isPowerOn = false;
+            } else {
+                playerWrapper.style.display = 'block';
+                blackScreen.style.display = 'none';
+                player.playVideo();
+                isPowerOn = true;
+            }
+        }
+
+        function handleKeyPress(event) {
+            switch(event.key) {
+                case 'ArrowRight':
+                    rotateKnob(document.getElementById('channelKnob'), 45);
+                    jumpToRandomVideo();
+                    break;
+                case 'ArrowLeft':
+                    rotateKnob(document.getElementById('channelKnob'), -45);
+                    jumpToRandomVideo();
+                    break;
+                case 'ArrowUp':
+                    rotateKnob(document.getElementById('volumeKnob'), 30);
+                    changeVolume(10);
+                    break;
+                case 'ArrowDown':
+                    rotateKnob(document.getElementById('volumeKnob'), -30);
+                    const now = Date.now();
+                    if (now - lastDownArrowTime < 300) {
+                        toggleMute();
+                    } else {
+                        changeVolume(-10);
+                    }
+                    lastDownArrowTime = now;
+                    break;
+                case ' ':
+                    togglePower();
+                    break;
+            }
+        }
+
+        function showRandomNumber() {
+            const numberElement = document.querySelector('.number');
+            const randomNumber = Math.floor(Math.random() * 100) + 1;
+            numberElement.textContent = randomNumber;
+            numberElement.style.display = 'block';
+            setTimeout(() => {
+                numberElement.style.display = 'none';
+            }, 2000);
+        }
+
+        function showVolumeBars(volume) {
+            const bars = document.querySelectorAll('.volumeBar');
+            const volumeLevel = Math.ceil(volume / 10);
+            bars.forEach((bar, index) => {
+                if (index < volumeLevel) {
+                    bar.classList.add('active');
+                    bar.style.height = `${(index + 1) * 3 + 5}px`;
+                } else {
+                    bar.classList.remove('active');
+                    bar.style.height = '8px';
+                }
+            });
+            const volumeBarContainer = document.getElementById('volumeBarContainer');
+            volumeBarContainer.classList.add('show');
+            volumeBarContainer.style.display = 'flex';
+        }
+
+        function hideVolumeBars() {
+            const volumeBarContainer = document.getElementById('volumeBarContainer');
+            volumeBarContainer.classList.remove('show');
+            volumeBarContainer.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
